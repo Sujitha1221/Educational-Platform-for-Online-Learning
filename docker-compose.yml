@@ -1,0 +1,77 @@
+version: '3.8'
+
+services:
+  user:
+    image: sujitha1221/user-management-service:latest
+    ports:
+      - "8090:8090"
+    networks:
+      - ds
+    restart: always
+
+  course:
+    build:
+      context: ./Educational-Platform-for-Online-Learning-Backend/course  
+    ports:
+      - "8070:8070"
+    networks:
+      - ds
+    depends_on:
+      - user
+    restart: always
+
+  enrollment:
+    build:
+      context: ./Educational-Platform-for-Online-Learning-Backend/enrollment  
+    ports:
+      - "8080:8080"
+    networks:
+      - ds
+    depends_on:
+      - course
+      - user
+    restart: always
+
+  payment:
+    build:
+      context: ./Educational-Platform-for-Online-Learning-Backend/payment 
+    ports:
+      - "8100:8100"
+    networks:
+      - ds
+    depends_on:
+      - course
+      - user
+      - enrollment
+    restart: always
+
+  admin_frontend:
+    build:
+      context: ./Educational-Platform-For-Online-Learning-Frontend/Admin 
+    ports:
+      - "3000:3000"
+    depends_on:
+      - enrollment
+      - course
+      - user
+      - payment
+    networks:
+      - ds
+    restart: always
+
+  student_frontend:
+    build:
+      context: ./Educational-Platform-For-Online-Learning-Frontend/Students 
+    ports:
+      - "4000:4000"
+    depends_on:
+      - enrollment
+      - course
+      - user
+    networks:
+      - ds
+    restart: always
+
+networks:
+  ds:
+    driver: bridge

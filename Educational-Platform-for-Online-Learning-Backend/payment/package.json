@@ -1,0 +1,31 @@
+{
+  "name": "payment",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "nodemon server.mjs"
+  },
+  "author": "IT21068478 Dharane.S",
+  "license": "ISC",
+  "dependencies": {
+    "@vonage/server-sdk": "^3.14.0",
+    "axios": "^1.6.8",
+    "babel": "^6.23.0",
+    "body-parser": "^1.20.2",
+    "cors": "^2.8.5",
+    "cross-env": "^7.0.3",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.3.2",
+    "nodemailer": "^6.9.13",
+    "nodemon": "^3.1.0",
+    "pino": "^8.19.0",
+    "pino-pretty": "^10.3.1",
+    "stripe": "^15.6.0",
+    "twilio": "^5.0.4",
+    "util": "^0.12.5"
+  }
+}
