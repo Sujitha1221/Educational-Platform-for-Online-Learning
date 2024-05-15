@@ -11,6 +11,7 @@ const SuccessPayment = () => {
   const [isLoading, setIsLoading] = useState(true);
 
   const token = JSON.parse(localStorage.getItem("auth")).token;
+  const user = JSON.parse(localStorage.getItem("auth")).user;
 
   const config = token ? { headers: { Authorization: `Bearer ${token}` } } : {};
 
@@ -29,7 +30,7 @@ const SuccessPayment = () => {
             )
             .then((res) => {
               axios
-                .post(`http://localhost:8100/v1/payment/send-email/${payId}`)
+                .post(`http://localhost:8100/v1/payment/send-email/${user.email}`)
                 .then((res) => {
                   setIsLoading(false);
                   startCountdown();
