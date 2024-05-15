@@ -11,6 +11,7 @@ import InputAdornment from "@mui/material/InputAdornment";
 import InputBase from "@mui/material/InputBase";
 import SearchIcon from "@mui/icons-material/Search";
 import axios from "axios";
+import { CoPresentOutlined } from "@mui/icons-material";
 
 const ViewStudentEnrollments = () => {
   const [students, setStudents] = useState([]);
@@ -32,39 +33,31 @@ const ViewStudentEnrollments = () => {
           headers: { Authorization: `Bearer ${token}` },
         }
       );
+      console.log(response);
       const studentUsers = response.data.students;
+      console.log(studentUsers);
   
       const studentEnrollmentsPromises = studentUsers.map(async (student) => {
         const enrollmentsResponse = await axios.get(
           `http://localhost:8080/v1/enrollments/viewCourse/${student._id}`
         );
+        console.log(student._id);
         const enrollments = enrollmentsResponse.data.enrollments;
   
         let enrolledCourses;
         if (enrollments && enrollments.length === 0) {
-          enrolledCourses = [{ name: "Student has not enrolled in any courses", completionPercentage: "" }];
+          enrolledCourses = "No enrollments";
         } else if (enrollments) {
-          const courseInfoPromises = enrollments.map(async (enrollment) => {
+          const courseNamesPromises = enrollments.map(async (enrollment) => {
             const courseResponse = await axios.get(
               `http://localhost:8070/v1/courses/${enrollment.course}`
             );
-            const course = courseResponse.data;
-            const progressResponse = await axios.post(
-              "http://localhost:8080/v1/progress/viewProgress",
-              {
-                userId: student._id,
-                courseId: enrollment.course,
-              }
-            );
-            const completionPercentage = progressResponse.data.percentage;
-            return {
-              name: course.name,
-              completionPercentage: completionPercentage,
-            };
+            return courseResponse.data.name;
           });
-          enrolledCourses = await Promise.all(courseInfoPromises);
+          const courseNames = await Promise.all(courseNamesPromises);
+          enrolledCourses = courseNames.join(", ");
         } else {
-          enrolledCourses = [{ name: "Student has not enrolled in any courses", completionPercentage: "" }];
+          enrolledCourses = "Student is not enrolled in any courses";
         }
   
         return {
@@ -101,24 +94,26 @@ const ViewStudentEnrollments = () => {
 
   return (
     <>
-      <div className="flex justify-center">
-        <h1 className="text-4xl font-bold mb-5">Student Enrollments</h1>
-      </div>
-      <div className="flex justify-center">
-        <InputBase
-          type="search"
-          id="default-search"
-          onChange={(e) => setSearchKey(e.target.value)}
-          className="block mt-3 p-3 mb-5 pl-8 text-sm text-black border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-black dark:focus:ring-blue-500 dark:focus:border-blue-500"
-          placeholder="Search"
-          value={searchKey}
-          startAdornment={
-            <InputAdornment position="start">
-              <SearchIcon />
-            </InputAdornment>
-          }
-        />
-      </div>
+
+<div className="flex justify-center">
+      <h1 className="text-4xl font-bold mb-5">Student Enrollments</h1>
+    </div>
+    <div className="flex justify-center">
+    <InputBase
+  type="search"
+  id="default-search"
+  onChange={(e) => setSearchKey(e.target.value)}
+  className="block mt-3 p-3 mb-5 pl-8 text-sm text-black border border-gray-300 rounded-lg bg-gray-50 focus:ring-blue-500 focus:border-blue-500 dark:border-gray-600 dark:placeholder-gray-400 dark:text-black dark:focus:ring-blue-500 dark:focus:border-blue-500"
+  placeholder="Search"
+  value={searchKey}
+  startAdornment={
+    <InputAdornment position="start">
+      <SearchIcon />
+    </InputAdornment>
+  }
+/>
+
+                </div>
       <TableContainer component={Paper} style={{ marginTop: "20px" }}>
         <Table>
           <TableHead>
@@ -129,6 +124,7 @@ const ViewStudentEnrollments = () => {
             </TableRow>
           </TableHead>
           <TableBody>
+            
             {students
               .filter((key) => {
                 const name = (key.name || "").toLowerCase();
@@ -138,13 +134,7 @@ const ViewStudentEnrollments = () => {
                 <StyledTableRow key={student.studentId}>
                   <StyledTableCell>{student.studentId}</StyledTableCell>
                   <StyledTableCell>{student.name}</StyledTableCell>
-                  <StyledTableCell>
-                    {student.enrolledCourses.map((course, index) => (
-                      <div key={index}>
-                        {course.name} - {course.completionPercentage}%
-                      </div>
-                    ))}
-                  </StyledTableCell>
+                  <StyledTableCell>{student.enrolledCourses}</StyledTableCell>
                 </StyledTableRow>
               ))}
           </TableBody>
