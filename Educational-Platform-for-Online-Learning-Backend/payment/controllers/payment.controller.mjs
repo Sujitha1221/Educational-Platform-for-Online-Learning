@@ -20,28 +20,12 @@ const getNextPaymentId = async () => {
 };
 
 const transporter = nodemailer.createTransport({
-  service: 'Gmail',
+  service: 'gmail',
   auth: {
     user: process.env.EMAIL,
     pass: process.env.APP_PASSWORD,
   },
 });
-
-const sendEmail = async (email, paymentId) => {
-  const mailOptions = {
-    from: process.env.EMAIL,
-    to: email,
-    subject: 'Payment Successful',
-    text: `Dear customer, your payment with ID ${paymentId} has been successfully processed.`,
-  };
-
-  try {
-    await transporter.sendMail(mailOptions);
-    logger.info('Email sent successfully');
-  } catch (error) {
-    logger.error('Error sending email:', error);
-  }
-};
 
 const PaymentController = {
   makePayment: async (req, res) => {
@@ -131,19 +115,21 @@ const PaymentController = {
   },
   
   sendPaymentSuccessEmail: async (req, res) => {
-    const paymentId = req.params.paymentId;
+    const email = req.params.email;
   
-    try {
-      const payment = await Payment.findById(paymentId);
-      if (!payment) {
-        return res.status(404).json({ message: 'Payment not found' });
-      }
-  
-      await sendEmail(payment.user.email, payment.id);
+    try { 
+      const mailOptions = {
+        from: process.env.EMAIL,
+        to: email,
+        subject: 'Payment Successful',
+        html: `Dear customer,<br/><br/> your payment has been successfully processed.<br/><br/>Thank you.<br/>LearnHub`,
+      };
+
+      await transporter.sendMail(mailOptions);
   
       res.json({ message: 'Email sent successfully' });
     } catch (error) {
-      logger.error('Error:', error);
+      logger.error(error);
       res.status(500).json({ message: 'Internal server error' });
     }
   }
