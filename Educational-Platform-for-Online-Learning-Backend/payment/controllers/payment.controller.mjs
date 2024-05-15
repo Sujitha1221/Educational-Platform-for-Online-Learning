@@ -6,8 +6,11 @@ import nodemailer from 'nodemailer';
 
 dotenv.config();
 
+//stirpe secret key
 const stripe = new Stripe(process.env.STRIPE_SECRET);
 
+
+//generate payemnt id
 const getNextPaymentId = async () => {
   const lastPayment = await Payment.findOne({}, {}, { sort: { 'id': -1 } });
   if (lastPayment) {
@@ -19,6 +22,7 @@ const getNextPaymentId = async () => {
   }
 };
 
+//email transporter
 const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
@@ -27,10 +31,15 @@ const transporter = nodemailer.createTransport({
   },
 });
 
+
+//payment controller
 const PaymentController = {
+
+  //make payment
   makePayment: async (req, res) => {
     const { course, user } = req.body;
 
+    //stripe payload
     const product = {
       price_data: {
         currency: "usd",
@@ -43,6 +52,8 @@ const PaymentController = {
       quantity: 1,
     };
 
+
+    //payment payload
     const payment = new Payment({
       id: await getNextPaymentId(),
       user: user,
@@ -52,8 +63,10 @@ const PaymentController = {
       verified: false
     });
 
+    //save transaction
     const savedPayment = await payment.save();
 
+    //stripe session
     const session = await stripe.checkout.sessions.create({
         payment_method_types:["card"],
         line_items: [product],
@@ -65,6 +78,8 @@ const PaymentController = {
     res.json({ id: session.id });
   },
 
+
+  //retrieve payment by id
   getById: async (req, res) => {
     const paymentId = req.params.id;
 
@@ -76,6 +91,7 @@ const PaymentController = {
     }
   },
 
+  //erify payment
   verifyPayment: async (req, res) => {
     const paymentId = req.params.id;
 
@@ -94,6 +110,7 @@ const PaymentController = {
     }
   },
 
+  //retrieve all payments
   getAllPayments: async (req, res) => {
     try {
       const payments = await Payment.find({ verified: true });
@@ -103,6 +120,7 @@ const PaymentController = {
     }
   },
   
+  //retrieve payment of a specific user
   getPaymentsByUser: async (req, res) => {
     const userId = req.params.userId;
   
@@ -113,10 +131,12 @@ const PaymentController = {
       res.status(500).json({ message: err.message });
     }
   },
-  
+
+  //send payment confirmation email
   sendPaymentSuccessEmail: async (req, res) => {
     const email = req.params.email;
   
+    //mail body
     try { 
       const mailOptions = {
         from: process.env.EMAIL,
@@ -125,6 +145,7 @@ const PaymentController = {
         html: `Dear customer,<br/><br/> your payment has been successfully processed.<br/><br/>Thank you.<br/>LearnHub`,
       };
 
+      //send email
       await transporter.sendMail(mailOptions);
   
       res.json({ message: 'Email sent successfully' });
